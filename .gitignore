@@ -1,0 +1,43 @@
+# Environment / Secrets
+.env
+*.env
+*.key
+*.pem
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+build/
+dist/
+
+# Virtual environments
+venv/
+.env/
+.virtualenv/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data (don’t commit raw or processed flight data)
+data/
+*.csv
+*.json
+*.parquet
+
+# If you want processed datasets versioned later:
+# !data/processed/
+
+# IDE / OS Files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
