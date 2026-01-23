@@ -19,5 +19,5 @@ Setup:
 
 1. Clone the repository
 ```bash
-git clone https://github.com/<your-username>/flight-reliability-project.git
+git clone https://github.com/<yomasterp>/flight-reliability-project.git
 cd flight-reliability-project
