@@ -32,6 +32,21 @@ class Flight(Base):
     flight_status = Column(String, index=True)
 
 
+    # Airline Name
+    airline_name = Column(String)
+
+
+    # Delays, in minutes
+    departure_delay = Column(Integer)
+    arrival_delay = Column(Integer)
+
+
+    # Terminals & Gates
+    departure_terminal = Column(String)
+    arrival_terminal = Column(String)
+    departure_gate = Column(String)
+    arrival_gate = Column(String)
+
+
     # Flight Metadata
     ingested_at = Column(DateTime, default=datetime.utcnow)
-

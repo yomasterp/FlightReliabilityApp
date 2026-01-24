@@ -33,7 +33,22 @@ def save_flight_data(db: Session, flights: list[dict]) -> None:
             scheduled_arrival=parse_flight_data(arrival.get("scheduled")),
             actual_departure=parse_flight_data(departure.get("actual")),
             actual_arrival=parse_flight_data(arrival.get("actual")),
-            flight_status=flight_info.get("status"),
+            
+            # Flight Status
+            flight_status=flight_info.get("flight_status"),
+
+            # Airline Name
+            airline_name=airline.get("name"),
+
+            # Delays, in minutes
+            departure_delay=departure.get("delay"),
+            arrival_delay=arrival.get("delay"),
+
+            # Terminals & Gates
+            departure_terminal=departure.get("terminal"),
+            arrival_terminal=arrival.get("terminal"),
+            departure_gate=departure.get("gate"),
+            arrival_gate=arrival.get("gate"),
         )
 
         db.add(db_flight)
@@ -45,7 +60,8 @@ def main():
     client = AviationstackClient()
 
     params = {
-        "limit": 20,
+        "limit": 100,
+        "flight_status": "active",
         # add more filters here later!!!
         # airport_iata="LAX",
         # flight_status="scheduled",
