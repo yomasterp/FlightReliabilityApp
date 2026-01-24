@@ -16,10 +16,3 @@ This project uses real-time and historical flight data from Aviationstack, store
 The long-term goal is to predict future reliability and availability for selected airlines.  
 
 ---
-
-Setup:
-
-1. Clone the repository
-```bash
-git clone https://github.com/<yomasterp>/flight-reliability-project.git
-cd flight-reliability-project
