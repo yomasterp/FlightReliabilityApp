@@ -1,3 +1,5 @@
+(MODEL IN PROGRESS)
+
 Flight Reliability & Availability Tracker   
 Uses the free Aviationstack API to collect any available flight status data, then analyze airline reliability, and predict other valuable insights.
 
