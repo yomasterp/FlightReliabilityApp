@@ -6,7 +6,7 @@ load_dotenv()
 
 # Aviationstack API configuration
 AVIATIONSTACK_API_KEY = os.getenv("AVIATIONSTACK_API_KEY")
-BASE_URL = os.getenv("AVIATIONSTACK_BASE_URL", "http://api.aviationstack.com/v1")
+BASE_URL = os.getenv("AVIATIONSTACK_BASE_URL", "https://api.aviationstack.com/v1")
 
 # PostgreSQL configuration
 DB_HOST = os.getenv("DB_HOST", "localhost")

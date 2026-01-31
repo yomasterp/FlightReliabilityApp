@@ -11,7 +11,6 @@ class Flight(Base):
     # IDs
     flight_iata = Column(String, index=True)
     airline_iata = Column(String, index=True)
-    airline_iata = Column(String)
 
     
     # Route IDs
