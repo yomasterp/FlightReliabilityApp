@@ -50,8 +50,7 @@ sys.path.insert(0, '.')
 try:
     from src.main import main
 except ImportError as e:
-    print(f"Error importing main module: {e}")
-    print("Make sure you're running from the project root directory.")
+    logger.exception("Error importing main module. Make sure you're running from the project root directory.")
     sys.exit(1)
 
 
@@ -79,7 +78,7 @@ def main_scheduler():
 
     
     # Schedule the job to run every 30 minutes
-    schedule.every(30).minutes.do(run_data_collection)
+    schedule.every(8).hour.do(run_data_collection)
     
     # Run once immediately on startup
     logger.info("Running initial data collection...")
