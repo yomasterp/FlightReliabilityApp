@@ -77,7 +77,7 @@ def main_scheduler():
     logger.info("=" * 60)
 
     
-    # Schedule the job to run every 30 minutes
+    # Schedule the job to run every 8 hours
     schedule.every(8).hours.do(run_data_collection)
     
     # Run once immediately on startup
