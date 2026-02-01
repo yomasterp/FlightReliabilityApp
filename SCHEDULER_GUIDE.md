@@ -62,29 +62,6 @@ If you don't want it to run immediately on startup, comment out lines 48-49 in `
 # run_data_collection()
 ```
 
-## Alternative: Windows Task Scheduler
-
-For production use on Windows, you can also use Windows Task Scheduler:
-
-1. Open Task Scheduler
-2. Create Basic Task
-3. Set trigger: "Daily" or "When computer starts"
-4. Set action: "Start a program"
-5. Program: `pythonw`
-6. Arguments: `scheduler.py`
-7. Start in: `C:\Users\smrit\FlightReliabilityApp`
-
-## Alternative: Cron (Linux/Mac)
-
-On Linux or Mac, you can use cron:
-```bash
-# Edit crontab
-crontab -e
-
-# Add this line to run every 30 minutes
-*/30 * * * * cd /path/to/FlightReliabilityApp && python scheduler.py
-```
-
 ## Monitoring
 
 The scheduler prints logs to the console:
