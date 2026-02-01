@@ -33,13 +33,13 @@ The `scheduler.py` script:
 1. Uses the `schedule` library to set up a recurring job
 2. Runs `src.main.main()` every 30 minutes
 3. Includes error handling - if one collection fails, it continues
-4. Logs timestamps for each collection run
+4. Logs to both the console and `scheduler.log` (with timestamps)
 5. Runs immediately on startup, then every 30 minutes
 
 ## Customization
 
 ### Change the Interval
-Edit `scheduler.py` and modify line 45:
+Edit `scheduler.py` and modify the `schedule.every(...)` line in `main_scheduler()`:
 ```python
 # Every 30 minutes (current)
 schedule.every(30).minutes.do(run_data_collection)
@@ -55,23 +55,23 @@ schedule.every().day.at("10:30").do(run_data_collection)
 ```
 
 ### Disable Initial Run
-If you don't want it to run immediately on startup, comment out lines 48-49 in `scheduler.py`:
+If you don't want it to run immediately on startup, comment out the initial run block in `main_scheduler()`:
 ```python
 # Run once immediately on startup
-# print("\nRunning initial data collection...")
+# logger.info("Running initial data collection...")
 # run_data_collection()
 ```
 
 ## Monitoring
 
-The scheduler prints logs to the console:
+The scheduler logs to both the console and `scheduler.log` in the project root:
 - Timestamp of each collection run
 - Success/failure messages
-- Error details if something goes wrong
+- Error details (including full tracebacks) if something goes wrong
 
-For production, you might want to redirect output to a log file:
+To keep only a file copy (e.g. when running in background), you can still redirect:
 ```bash
-python scheduler.py >> scheduler.log 2>&1
+python scheduler.py >> scheduler_console.log 2>&1
 ```
 
 ## Stopping the Scheduler

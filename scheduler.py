@@ -14,8 +14,35 @@ To run in the background on Windows:
 import schedule
 import time
 import sys
-import traceback
-from datetime import datetime
+import logging
+
+logger = logging.getLogger("scheduler")
+logger.setLevel(logging.INFO)
+
+# Prevent duplicate logging
+logger.propagate = False
+
+# File handler
+file_handler = logging.FileHandler("scheduler.log")
+file_handler.setLevel(logging.INFO)
+
+# Console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+# Formatter
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+# Add handlers to logger
+if not logger.handlers:
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
 
 # Add src to path so we can import the main module
 sys.path.insert(0, '.')
@@ -30,34 +57,32 @@ except ImportError as e:
 
 def run_data_collection():
     """Wrapper function to run main() with error handling and logging."""
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"\n[{timestamp}] Starting flight data collection...")
+    logger.info("Starting flight data collection...")
     
     try:
         main()
-        print(f"[{timestamp}] Flight data collection completed successfully.")
+        logger.info("Flight data collection completed successfully.")
     except Exception as e:
-        print(f"[{timestamp}] ERROR during flight data collection:")
-        print(f"  {type(e).__name__}: {e}")
-        traceback.print_exc()
+        logger.error("ERROR during flight data collection")
+        logger.exception("Unhandled exception during flight data collection")
         # Continue running even if one collection fails
-        print(f"[{timestamp}] Scheduler will continue running...")
+        logger.info("Scheduler will continue running...")
 
 
 def main_scheduler():
     """Main scheduler loop."""
-    print("=" * 60)
-    print("Flight Data Collection Scheduler")
-    print("=" * 60)
-    print("Scheduled to run every 30 minutes")
-    print("Press Ctrl+C to stop the scheduler")
-    print("=" * 60)
+    logger.info("=" * 60)
+    logger.info("Flight Data Collection Scheduler")
+    logger.info("Scheduled to run every 30 minutes")
+    logger.info("Press Ctrl+C to stop the scheduler")
+    logger.info("=" * 60)
+
     
     # Schedule the job to run every 30 minutes
     schedule.every(30).minutes.do(run_data_collection)
     
     # Run once immediately on startup
-    print("\nRunning initial data collection...")
+    logger.info("Running initial data collection...")
     run_data_collection()
     
     # Keep the scheduler running
@@ -66,8 +91,8 @@ def main_scheduler():
             schedule.run_pending()
             time.sleep(60)  # Check every minute
     except KeyboardInterrupt:
-        print("\n\nScheduler stopped by user.")
-        print("Final data collection completed.")
+        logger.info("Scheduler stopped by user.")
+        logger.info("Final data collection completed.")
 
 
 if __name__ == "__main__":
