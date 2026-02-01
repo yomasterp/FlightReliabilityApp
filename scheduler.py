@@ -72,7 +72,7 @@ def main_scheduler():
     """Main scheduler loop."""
     logger.info("=" * 60)
     logger.info("Flight Data Collection Scheduler")
-    logger.info("Scheduled to run every 30 minutes")
+    logger.info("Scheduled to run every 8 hours")
     logger.info("Press Ctrl+C to stop the scheduler")
     logger.info("=" * 60)
 
