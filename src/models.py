@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, Index, Integer, String, text
+from sqlalchemy import Column, DateTime, Index, Integer, String
 
 from .database import Base
 
@@ -44,11 +44,6 @@ class Flight(Base):
 
     content_hash = Column(String(64), nullable=True)
 
-    __table_args__ = (
-        Index(
-            "ux_flights_content_hash",
-            "content_hash",
-            unique=True,
-            postgresql_where=text("content_hash IS NOT NULL"),
-        ),
-    )
+    # Non-partial unique index: Postgres treats NULLs as distinct, so legacy NULL rows are OK.
+    # Required for INSERT ... ON CONFLICT (content_hash) DO NOTHING.
+    __table_args__ = (Index("ux_flights_content_hash", "content_hash", unique=True),)

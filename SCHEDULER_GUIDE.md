@@ -1,20 +1,21 @@
 # Scheduler Guide — Data Collection Every 8 Hours
 
+Before running the scheduler, configure **`.env`** (Aviationstack key + Postgres or **Supabase** connection). See **`README.md`** and **`.env.example`**. Use your virtual environment’s Python, e.g. **`./venv/bin/python scheduler.py`** if you do not activate **`venv`**.
+
 ## Quick Start
 
-### 1. Install the Schedule Library
-```bash
-pip install schedule
-```
-Or install all requirements:
+### 1. Install dependencies
+The scheduler needs the **`schedule`** package (included in **`requirements.txt`**):
 ```bash
 pip install -r requirements.txt
 ```
 
 ### 2. Run the Scheduler
+From the project root:
 ```bash
 python scheduler.py
 ```
+On macOS/Linux, if **`python`** is not on your **`PATH`**, use **`python3`** or **`./venv/bin/python scheduler.py`**.
 
 The scheduler will:
 - Run data collection immediately
