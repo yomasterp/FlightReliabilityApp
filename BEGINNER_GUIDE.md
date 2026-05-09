@@ -5,10 +5,10 @@
 Imagine you want to know which airlines are reliable - which ones arrive on time, which ones are often delayed, etc. This project automatically collects information about flights from the internet and saves it to a database so you can analyze it later.
 
 Think of it like a robot that:
-1. Goes to a website (Aviationstack API) every 30 minutes
+1. Goes to a website (Aviationstack API) **every 8 hours** (with one run right when it starts)
 2. Asks "What flights are flying right now?"
-3. Writes down all the flight information in a notebook (database)
-4. Repeats this forever
+3. Writes down flight information in a notebook (database), **skipping exact duplicates**
+4. Repeats on that schedule until you stop it
 
 ## What is an API?
 
@@ -136,11 +136,11 @@ This is the "brain" of your program - it coordinates everything. It's like the c
 - `main()` - The main function that runs everything
 
 ### 9. `scheduler.py` - The Timer
-This file makes the main program run automatically every 30 minutes. It's like setting an alarm clock that goes off every 30 minutes and tells your program to collect data.
+This file runs the collector on startup, then automatically **every 8 hours**. It's like setting a long-interval alarm clock for data collection.
 
 **What it does:**
 - Uses the `schedule` library (a tool for scheduling tasks)
-- Tells the program: "Run main() every 30 minutes"
+- Tells the program: "Run `main()` now, then again every 8 hours"
 - Runs immediately when you start it
 - Keeps running until you stop it (Ctrl+C)
 - Handles errors gracefully (if one run fails, it keeps going)
@@ -152,7 +152,7 @@ Here's the flow in simple terms:
 ```
 1. You run scheduler.py
    ↓
-2. Scheduler waits 30 minutes, then calls main.py
+2. Scheduler runs `main` once, then sleeps until the next **8-hour** boundary
    ↓
 3. main.py creates an AviationstackClient
    ↓
@@ -166,11 +166,11 @@ Here's the flow in simple terms:
    ↓
 8. main.py uses database.py to connect to PostgreSQL
    ↓
-9. main.py creates Flight objects (using models.py as template)
+9. main.py fingerprints each observation and avoids saving exact duplicates (`content_hash`)
    ↓
-10. main.py saves Flight objects to the database
+10. New observations are inserted into PostgreSQL
     ↓
-11. Scheduler waits another 30 minutes and repeats
+11. Scheduler waits until the next 8-hour run and repeats
 ```
 
 ## Key Concepts Explained Simply
@@ -295,13 +295,13 @@ python scheduler.py
 
 ## What Happens Over Time?
 
-As the scheduler runs every 30 minutes:
-- Your database fills up with flight data
+As the scheduler runs every 8 hours:
+- Your database accumulates **new or changed observations** — exact duplicates from the API are skipped
 - You can see patterns (which airlines are often delayed, which routes have issues, etc.)
 - You can analyze the data to make predictions
 - You can build reports and visualizations
 
-The more data you collect, the better insights you can get!
+The more trustworthy rows you accumulate, the better insights you can get!
 
 ## Next Steps
 

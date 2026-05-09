@@ -4,6 +4,15 @@ This document explains all files in the Flight Reliability & Availability Tracke
 
 ## Root Directory Files
 
+### `tests/`
+- **Purpose**: `pytest` coverage for parsing and hashing (no Postgres required)
+
+### `.env.example`
+- **Purpose**: Documents required env vars — copy to `.env` locally (never commit secrets)
+
+### `pytest.ini`
+- **Purpose**: Registers `tests/` and adds project root to `pythonpath`
+
 ### `README.md`
 - **Purpose**: Project overview and setup instructions
 - **Contents**: Describes the project goals, features, and basic setup steps
@@ -31,8 +40,8 @@ This document explains all files in the Flight Reliability & Availability Tracke
   - IDE and OS files
   - Log files
 
-### `scheduler.py` (NEW)
-- **Purpose**: Runs `main.py` every 30 minutes automatically
+### `scheduler.py`
+- **Purpose**: Runs `src.main.main()` immediately, then **every 8 hours**
 - **Contents**: Uses the `schedule` library to periodically collect flight data
 - **Usage**: `python scheduler.py` or `pythonw scheduler.py` (background on Windows)
 
@@ -102,7 +111,20 @@ This document explains all files in the Flight Reliability & Availability Tracke
     - `arrival_terminal` - Arrival terminal
     - `departure_gate` - Departure gate
     - `arrival_gate` - Arrival gate
-    - `ingested_at` - Timestamp when data was collected
+    - `ingested_at` - Timestamp when data was collected (UTC, timezone-aware)
+    - `flight_date` - Provider flight date string (`YYYY-MM-DD`)
+    - `content_hash` - SHA-256 fingerprint of canonical observation (deduplication)
+
+### `src/flight_snapshot.py`
+- **Purpose**: Builds a stable JSON projection of each API flight for hashing
+- **Usage**: `observation_content_hash()` powers `INSERT ... ON CONFLICT DO NOTHING`
+
+### `src/schema_upgrade.py`
+- **Purpose**: Idempotent PostgreSQL patches (new columns, partial unique index, `ingested_at` tz)
+- **Usage**: `python -m src.schema_upgrade` or invoked from `init_database`
+
+### `src/api_main.py`
+- **Purpose**: Small FastAPI app (`/health`, `/stats/observations`)
 
 ### `src/init_database.py`
 - **Purpose**: Database initialization script
@@ -126,12 +148,12 @@ This document explains all files in the Flight Reliability & Availability Tracke
 
 ## Data Flow
 
-1. **Scheduler** (`scheduler.py`) triggers data collection every 30 minutes
+1. **Scheduler** (`scheduler.py`) triggers data collection every 8 hours
 2. **Main Script** (`src/main.py`) runs the collection process
 3. **API Client** (`src/aviationstack_client.py`) fetches data from Aviationstack API
 4. **Data Processing** (`src/main.py`) parses the JSON response
 5. **Database** (`src/database.py` + `src/models.py`) stores the flight data in PostgreSQL
-6. **Repeat** - The cycle continues every 30 minutes
+6. **Repeat** - The cycle continues every 8 hours
 
 ## Setup Checklist
 

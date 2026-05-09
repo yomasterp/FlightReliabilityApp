@@ -1,4 +1,4 @@
-# Scheduler Guide - Running Data Collection Every 30 Minutes
+# Scheduler Guide — Data Collection Every 8 Hours
 
 ## Quick Start
 
@@ -18,7 +18,7 @@ python scheduler.py
 
 The scheduler will:
 - Run data collection immediately
-- Then run every 30 minutes automatically
+- Then run every 8 hours automatically
 - Continue running until you press `Ctrl+C`
 
 ### 3. Run in Background (Windows)
@@ -31,18 +31,18 @@ pythonw scheduler.py
 
 The `scheduler.py` script:
 1. Uses the `schedule` library to set up a recurring job
-2. Runs `src.main.main()` every 30 minutes
+2. Runs `src.main.main()` every 8 hours
 3. Includes error handling - if one collection fails, it continues
 4. Logs to both the console and `scheduler.log` (with timestamps)
-5. Runs immediately on startup, then every 30 minutes
+5. Runs immediately on startup, then every 8 hours
 
 ## Customization
 
 ### Change the Interval
 Edit `scheduler.py` and modify the `schedule.every(...)` line in `main_scheduler()`:
 ```python
-# Every 30 minutes (current)
-schedule.every(30).minutes.do(run_data_collection)
+# Every 8 hours (current)
+schedule.every(8).hours.do(run_data_collection)
 
 # Every hour
 schedule.every().hour.do(run_data_collection)
