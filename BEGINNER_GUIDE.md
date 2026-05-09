@@ -27,6 +27,8 @@ A **database** is like a digital filing cabinet. Instead of paper files, it stor
 
 **PostgreSQL** is a specific type of database (like how "Microsoft Word" is a specific type of word processor). It's free, powerful, and commonly used.
 
+This project is tested with **local Postgres** and with **Supabase**, which is PostgreSQL in the cloud. You store connection details in **`.env`** (see **`.env.example`** and **`README.md`**). For Supabase, you usually copy a **connection URI** from the Supabase dashboard.
+
 Think of it like this:
 - **Table** = A drawer in the filing cabinet
 - **Row** = One file/folder in the drawer
@@ -63,19 +65,20 @@ This file (you need to create it) stores secret information like passwords and A
 
 **Why it's separate:** You don't want to accidentally share your passwords when you share your code. The `.gitignore` file makes sure this file never gets uploaded to the internet.
 
-**Example content:**
+**Example content (see `.env.example` for the full list):**
 ```
 AVIATIONSTACK_API_KEY=your_secret_key_here
-DB_PASSWORD=your_database_password
+SQLALCHEMY_DATABASE_URL=postgresql://postgres.[ref]:[password]@db.[ref].supabase.co:5432/postgres
 ```
+Or use **`DB_HOST` / `DB_USER` / `DB_PASSWORD`** for a local server instead of a URI.
 
 ### 3. `src/config.py` - The Settings File
 This file reads the secrets from `.env` and makes them available to your program. It's like a translator that reads your password file and tells the rest of the program what the settings are.
 
 **What it does:**
 - Reads your API key from `.env`
-- Reads your database password from `.env`
-- Sets up the database connection string (like an address to find your database)
+- Reads database settings from `.env` — either a full URL (**`SQLALCHEMY_DATABASE_URL`**, common with Supabase) or **`DB_HOST` / `DB_USER` / `DB_PASSWORD`**, etc.
+- Builds the SQLAlchemy URL (including **SSL** for remote hosts when appropriate)
 
 ### 4. `src/aviationstack_client.py` - The Website Talker
 This file contains code that knows how to talk to the Aviationstack website. It's like having a friend who knows how to order from a specific restaurant.
@@ -117,7 +120,10 @@ This file creates the actual table in your database. It's like building the fili
 **What it does:**
 - Looks at your models (the Flight class)
 - Creates a table in PostgreSQL with all the right columns
-- Only needs to be run once (or when you change the structure)
+- Runs **`schema_upgrade`** so indexes (including deduplication on **`content_hash`**) exist
+- Only needs to be run once per database (or again when the schema is updated)
+
+**Supabase tip:** If creating the index fails when using the **connection pooler** (often port **6543**), use the **direct** connection string (port **5432**) from Supabase for this step, or run the SQL from **`src/schema_upgrade.py`** in the Supabase **SQL Editor** — see **`README.md`**.
 
 ### 8. `src/main.py` - The Main Worker
 This is the "brain" of your program - it coordinates everything. It's like the conductor of an orchestra, telling everyone what to do.
@@ -230,44 +236,45 @@ A **session** is like opening a conversation with the database. You:
 ### Step 1: Install Python
 Make sure Python is installed on your computer. You can download it from python.org.
 
-### Step 2: Install PostgreSQL
-Download and install PostgreSQL (the database). During installation, remember the password you set for the "postgres" user.
+### Step 2: Database (choose one path)
 
-### Step 3: Create a Database
-Open PostgreSQL and create a new database (or use the default "postgres" database).
+**A — Supabase (cloud PostgreSQL):** Create a project at [supabase.com](https://supabase.com). You will copy a **connection URI** from **Project Settings → Database** into **`.env`** as **`SQLALCHEMY_DATABASE_URL`**. No local Postgres install required.
 
-### Step 4: Install Project Tools
-Open a terminal/command prompt in your project folder and run:
+**B — Local PostgreSQL:** Install PostgreSQL on your machine. Remember the username/password you use (on Mac, the default superuser is often your macOS username, not **`postgres`**). Create or pick a database (often named **`postgres`**).
+
+### Step 3: Virtual environment (recommended)
+From the project folder:
+```bash
+python3 -m venv venv
+source venv/bin/activate    # Windows: venv\Scripts\activate
+```
+
+### Step 4: Install project dependencies
 ```bash
 pip install -r requirements.txt
 ```
-This installs all the tools your project needs.
 
-### Step 5: Create .env File
-Create a file named `.env` in your project root with:
-```
-AVIATIONSTACK_API_KEY=your_actual_api_key_here
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=postgres
-DB_USER=postgres
-DB_PASSWORD=your_database_password
-```
+### Step 5: Create `.env`
+Copy **`.env.example`** to **`.env`** and fill in:
 
-### Step 6: Initialize Database
-Run this once to create the tables:
+- **`AVIATIONSTACK_API_KEY`**
+- **Database:** Either paste **`SQLALCHEMY_DATABASE_URL=`** (Supabase URI from the dashboard), **or** set **`DB_HOST`**, **`DB_PORT`**, **`DB_NAME`**, **`DB_USER`**, **`DB_PASSWORD`** for local Postgres.
+
+### Step 6: Initialize the schema
+Creates tables and indexes (run after **`.env`** is correct):
+
 ```bash
 python -m src.init_database
 ```
 
-### Step 7: Test It
-Run the main script once to make sure everything works:
+Use **`python3`** or **`./venv/bin/python`** if **`python`** is not found.
+
+### Step 7: Test ingestion once
 ```bash
 python -m src.main
 ```
 
-### Step 8: Start the Scheduler
-Run the scheduler to collect data automatically:
+### Step 8: Optional — scheduled collection
 ```bash
 python scheduler.py
 ```
@@ -283,15 +290,26 @@ python scheduler.py
 **Solution:** Make sure your `.env` file exists and has `AVIATIONSTACK_API_KEY=your_key_here`
 
 ### "Can't connect to database" error
-**Problem:** The program can't reach PostgreSQL.
-**Solution:** 
-- Make sure PostgreSQL is running
-- Check that your database credentials in `.env` are correct
-- Make sure the database exists
+**Problem:** The program can't reach PostgreSQL / Supabase.
+**Solution:**
+- Check **`.env`** (URI or **`DB_*`**) — no typos; password matches the **database** password for Supabase
+- For **SSL** errors against a remote host, ensure **`sslmode=require`** is present (the app adds it for split **`DB_*`** URLs when the host is not localhost) or set **`DB_SSLMODE`**
+- Confirm the Supabase project is running and your IP is allowed if you use network restrictions
 
 ### "Table doesn't exist" error
-**Problem:** The database table hasn't been created yet.
-**Solution:** Run `python -m src.init_database` first.
+**Problem:** The **`flights`** table hasn't been created yet.
+**Solution:** Run **`python -m src.init_database`** first.
+
+### "no unique or exclusion constraint matching the ON CONFLICT" error
+**Problem:** The unique index on **`content_hash`** was not created (common if migrations ran only through the **transaction pooler**).
+**Solution:** Run **`python -m src.schema_upgrade`** using the **direct** Supabase URL (**port 5432**), or execute the **`CREATE UNIQUE INDEX`** block from **`src/schema_upgrade.py`** in the Supabase SQL editor. Then run **`python -m src.main`** again.
+
+### "`python` command not found"
+**Solution:** On many Macs, use **`python3`** or activate your **`venv`** and use **`python`**, or **`./venv/bin/python`**.
+
+### `git pull -u origin` failed
+**Problem:** **`git pull`** does not take **`-u`** that way.
+**Solution:** Use **`git pull`** or **`git pull origin main`**. Use **`git push -u origin main`** only when setting upstream on push.
 
 ## What Happens Over Time?
 

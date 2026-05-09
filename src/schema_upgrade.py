@@ -28,15 +28,32 @@ BEGIN
   END IF;
 END $$;
 
-CREATE UNIQUE INDEX IF NOT EXISTS ux_flights_content_hash
-ON flights (content_hash)
-WHERE content_hash IS NOT NULL;
+-- Full unique index (not partial) so ON CONFLICT (content_hash) matches cleanly.
+-- Multiple NULLs are still allowed (Postgres NULLs-distinct semantics).
+-- If migrations ran only via transaction pooler and this failed, run once in Supabase SQL editor.
+DROP INDEX IF EXISTS ux_flights_content_hash;
+CREATE UNIQUE INDEX ux_flights_content_hash ON public.flights (content_hash);
 """
 
 
 def apply_schema_patches(engine: Engine) -> None:
     with engine.begin() as conn:
         conn.execute(text(PATCHES_SQL))
+
+
+def verify_content_hash_index(engine: Engine) -> bool:
+    """Return True if the unique index for content_hash exists (required for INSERT ... ON CONFLICT)."""
+    stmt = text(
+        """
+        SELECT 1
+        FROM pg_indexes
+        WHERE schemaname = 'public'
+          AND tablename = 'flights'
+          AND indexname = 'ux_flights_content_hash'
+        """
+    )
+    with engine.connect() as conn:
+        return conn.execute(stmt).first() is not None
 
 
 if __name__ == "__main__":

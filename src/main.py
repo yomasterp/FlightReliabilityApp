@@ -7,6 +7,7 @@ from .aviationstack_client import AviationstackClient
 from .database import SessionLocal
 from .flight_snapshot import observation_content_hash
 from .models import Flight
+from .schema_upgrade import apply_schema_patches, verify_content_hash_index
 
 
 def parse_flight_data(dt_str: str | None) -> datetime | None:
@@ -56,6 +57,17 @@ def save_flight_data(db: Session, flights: list[dict]) -> int:
     rows = [api_flight_to_row(f) for f in flights]
     if not rows:
         return 0
+
+    bind = db.get_bind()
+    if not verify_content_hash_index(bind):
+        apply_schema_patches(bind)
+        if not verify_content_hash_index(bind):
+            raise RuntimeError(
+                "Missing unique index on flights.content_hash (needed for ON CONFLICT). "
+                "Set SQLALCHEMY_DATABASE_URL to Supabase direct DB (port 5432), run: "
+                "python -m src.schema_upgrade — or execute the CREATE UNIQUE INDEX block in "
+                "src/schema_upgrade.py using the Supabase SQL editor."
+            )
 
     stmt = pg_insert(Flight.__table__).values(rows)
     stmt = stmt.on_conflict_do_nothing(index_elements=["content_hash"])
