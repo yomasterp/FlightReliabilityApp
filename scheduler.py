@@ -1,8 +1,7 @@
 """
-Scheduler script to run main.py every 30 minutes to collect flight data.
+Scheduler script to run ingestion every 8 hours (see SCHEDULER_GUIDE.md).
 
-This script uses Python's schedule library to run the data collection
-at regular intervals. It includes error handling and logging.
+Uses the ``schedule`` library for intervals, logging, and safe error containment.
 
 Usage:
     python scheduler.py
@@ -57,14 +56,12 @@ except ImportError as e:
 def run_data_collection():
     """Wrapper function to run main() with error handling and logging."""
     logger.info("Starting flight data collection...")
-    
+
     try:
         main()
         logger.info("Flight data collection completed successfully.")
-    except Exception as e:
-        logger.error("ERROR during flight data collection")
+    except Exception:
         logger.exception("Unhandled exception during flight data collection")
-        # Continue running even if one collection fails
         logger.info("Scheduler will continue running...")
 
 

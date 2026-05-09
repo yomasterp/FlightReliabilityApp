@@ -1,11 +1,12 @@
 from .database import Base, engine
-# Import models, makes sure flights are registered in the database
-from . import models 
+from . import models  # Registers Flight on Base.metadata
+from .schema_upgrade import apply_schema_patches
 
 
 def init_database():
     print("Initializing database tables...")
     Base.metadata.create_all(bind=engine)
+    apply_schema_patches(engine)
     print("Database tables created successfully.")
 
 

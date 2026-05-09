@@ -7,3 +7,5 @@ uvicorn
 sqlalchemy
 psycopg2-binary
 schedule
+pytest
+httpx
